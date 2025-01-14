@@ -18,5 +18,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+db_connection = DatabaseConnection.get_instance()
+db_connection.connect("postgres://postgres:password@localhost:5432/projet_technique")
+app.include_router(patient.router)
+
 app.include_router(sequences.router, prefix="/sequences", tags=["Sequences"])
 app.include_router(index.router)
+
+# Déconnecter la base de données lors de l'arrêt de l'application
+@app.on_event("shutdown")
+def shutdown_event():
+    db_connection.disconnect()
