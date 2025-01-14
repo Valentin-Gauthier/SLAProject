@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import sequences, index
+from app.routers import sequences, index, patient, allPatient
+from app.models.DatabaseConnection import DatabaseConnection
 
 app = FastAPI()
 
@@ -21,6 +22,7 @@ app.add_middleware(
 db_connection = DatabaseConnection.get_instance()
 db_connection.connect("postgres://postgres:password@localhost:5432/projet_technique")
 app.include_router(patient.router)
+app.include_router(allPatient.router)
 
 app.include_router(sequences.router, prefix="/sequences", tags=["Sequences"])
 app.include_router(index.router)
