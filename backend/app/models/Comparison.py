@@ -20,7 +20,7 @@ class Comparison(ABC):
         self.matrice = []
 
     def heatmap(self,titre):
-        output_dir = "../visuals/"
+        output_dir = "../frontend/public/visuals/"
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, "HeatMap.png")
 
@@ -147,7 +147,7 @@ class CompLCSS(Comparison):
         """créer des graphiques spécifiques a LCSS"""
         if (len(self.sequences) == 2):
             
-            output_dir = "../visuals/"
+            output_dir = "../frontend/public/visuals/"
             os.makedirs(output_dir, exist_ok=True)
             output_path = os.path.join(output_dir, "compPlot.png")
 
@@ -207,7 +207,7 @@ class Comp_TSLDTW(Comparison):
         """créer des graphiques spécifiques a DTW"""
         if (len(self.sequences) == 2):
             
-            output_dir = "../visuals/"
+            output_dir = "../frontend/public/visuals/"
             os.makedirs(output_dir, exist_ok=True)
             output_path = os.path.join(output_dir, "compPlot.png")
 
@@ -266,7 +266,7 @@ class CompSoftDTW(Comparison):
     def illustrate(self):
         if (len(self.sequences) == 2):
             
-            output_dir = "../visuals/"
+            output_dir = "../frontend/public/visuals/"
             os.makedirs(output_dir, exist_ok=True)
             output_path = os.path.join(output_dir, "compPlot.png")
 

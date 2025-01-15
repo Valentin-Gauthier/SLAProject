@@ -24,7 +24,6 @@ db_connection.connect("postgres://postgres:password@localhost:5432/projet_techni
 
 app.include_router(patient.router)
 app.include_router(allPatient.router)
-app.include_router(sequences.router, prefix="/sequences", tags=["Sequences"])
 app.include_router(index.router)
 app.include_router(comparison.router)
 
