@@ -21,7 +21,7 @@ const Comparaison = () => {
             .then( response => {
                 console.log("Reponse de la requete :", response.data)
                 {/* Recuperer les données */ }
-                setPatientsId(response.data)
+                setPatientsId(response.data.patient_ids)
             })
             .catch( error => {
                 console.error("Erreur lors de la requete : ", error)
@@ -192,31 +192,43 @@ const Comparaison = () => {
                                 minHeight : '37.8rem',
                                 overflow : 'auto',
                             }}>
-                                {patientsId.map( (patientId) => (
-                                    <div
-                                        key={patientId}
-                                        onClick={ () => {
-                                            const alreadySelected = patientSelectionner.includes(patientId)
-                                            if (alreadySelected){
-                                                {/*  si il est dans la liste on l'enleve*/}
-                                                setSetlectedPatients(patientSelectionner.filter( (id) => id !== patientId))
-                                            } else {
-                                                {/* sinon on l'ajoute et on recupere les données*/}
-                                                setSetlectedPatients([...patientSelectionner, patientId])
-                                                GetPatientData(patientId)
-                                            } 
-                                        }}
-                                        className={`${
-                                            patientSelectionner.includes(patientId)
-                                            ? 'bg-green-500 dark:hover:bg-green-300'
-                                            : 'dark:bg-slate-700 dark:hover:bg-slate-600'
-                                        } p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex items-center transition-all cursor-pointer`}
-                                    > 
-                                        <span className="text-slate-800 dark:text-slate-100 font-medium">
-                                            {`Patient ${patientId}`}
-                                        </span>
-                                    </div>    
-                                ))}
+                                <div>
+                                    {patientsId && patientsId.length > 0 && (
+                                        <div>
+                                            {(() => {
+                                                const patientElements = [];
+                                                for (const patientId of patientsId) {
+                                                    patientElements.push(
+                                                        <div
+                                                            key={patientId}
+                                                            onClick={() => {
+                                                                const alreadySelected = patientSelectionner.includes(patientId);
+                                                                if (alreadySelected) {
+                                                                    // Si l'ID est déjà dans la liste, on l'enlève
+                                                                    setPatientSelectionner(patientSelectionner.filter((id) => id !== patientId));
+                                                                } else {
+                                                                    // Sinon, on l'ajoute et on récupère les données
+                                                                    setPatientSelectionner([...patientSelectionner, patientId]);
+                                                                    GetPatientData(patientId);
+                                                                }
+                                                            }}
+                                                            className={`${
+                                                                patientSelectionner.includes(patientId)
+                                                                    ? 'bg-green-500 dark:hover:bg-green-300'
+                                                                    : 'dark:bg-slate-700 dark:hover:bg-slate-600'
+                                                            } p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex items-center transition-all cursor-pointer`}
+                                                        >
+                                                            <span className="text-slate-800 dark:text-slate-100 font-medium">
+                                                                {`Patient ${patientId}`}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                }
+                                                return patientElements;
+                                            })()}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
