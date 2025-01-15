@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import sequences, index
+from app.routers import cluster
+from app.models.DatabaseConnection import DatabaseConnection
 
 app = FastAPI()
 
@@ -18,5 +20,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+db_connection = DatabaseConnection.get_instance()
+db_connection.connect("postgres://postgres:admin@localhost:5432/projet_technique")
+
 app.include_router(sequences.router, prefix="/sequences", tags=["Sequences"])
+app.include_router(cluster.router)
 app.include_router(index.router)
+#app.include_router(patient.router)
+
+# Premier clustering de tous les patients
+from app.models.Clustering import Clustering
+Clustering.do_init_clustering(5, db_connection)
+
+# Déconnecter la base de données lors de l'arrêt de l'application
+@app.on_event("shutdown")
+def shutdown_event():
+    db_connection.disconnect()

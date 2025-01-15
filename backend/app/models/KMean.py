@@ -8,6 +8,7 @@ import os
 import umap
 import plotly.express as px
 import plotly.graph_objects as go
+from collections import defaultdict
 
 class KMean(ClusteringStrategy):
 
@@ -155,7 +156,7 @@ class KMean(ClusteringStrategy):
             # ))
 
             # Création du dossier si nécessaire
-            output_dir = "../visualsClustering/"
+            output_dir = "../visuals/"
             os.makedirs(output_dir, exist_ok=True)
 
             # Sauvegarder le graphique en tant que fichier HTML
