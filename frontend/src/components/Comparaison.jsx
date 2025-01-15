@@ -6,95 +6,187 @@ import axios from "axios"
 
 const Comparaison = () => {
 
-    {/* Init Fetching patient list*/}
-    const [patients, setPatients] = useState([])
-    
-    const getPatient = () => {
-        axios.get("http://127.0.0.1:8000/sequences/sequences") 
-        .then(response => {
-            console.log(response.data)
-            // check data
-            if( Array.isArray(response.data)){
-                setPatients(response.data)
-            } else {
-                console.error("The data received is not an array", response.data)
-                setPatients([]) //default
-            }  
-        }).catch(error => {
-            console.log("Error when fetching datas : ",error)
-        })
+    {/* --------------- Recuperer tous les patients  ----------------------*/}
+     {/*  liste des id des patients */ }
+    const [patientsId, setPatientsId] = useState([])
+
+    const GetPatientsId = () => {
+        {/* préparation de la requete */ }
+        let url = "http://127.0.0.1:8000/allpatient"
+        axios
+            .get(url)
+            .then( response => {
+                console.log("Reponse de la requete :", response.data)
+                {/* Recuperer les données */ }
+                setPatientsId(response.data)
+            })
+            .catch( error => {
+                console.error("Erreur lors de la requete : ", error)
+            })
     }
-    // call getPatient only one time
-    useEffect( () => {
-        getPatient()
-    }, [])
-
-    
-    {/* patients list selected*/}
-    const [selectedPatients, setSetlectedPatients] = useState([])
 
     useEffect( () => {
-        // FETCH  data and add to patientsData
-        console.log("Selected Patients : ", selectedPatients)
-    }, [selectedPatients])
+        GetPatientsId()
+    },[])
 
+    {/* --------------------------- COMPARAISON DES PATIENTS  -------------------------------*/}
 
-    {/* On patient Click  fetching Patient data */}
-    const [patientsData, setPatientsData] = useState([])
-    useEffect( () => {
-        axios.get("http://127.0.0.1:8000/sequences/sequences") 
-        .then(response => {
-            console.log(response.data)
-            // check data
-            if( Array.isArray(response.data)){
-                setPatientsData(response.data)
-            } else {
-                console.error("The data received is not an array", response.data)
-                setPatientsData([]) //default
-            }  
-        }).catch(error => {
-            console.log("Error when fetching datas : ",error)
-        })
+    {/*  url de l'image   */ }
+    const [imageComparaison, setImageComparaison] = useState(null)
 
-    }, [selectedPatients])
+    {/*  liste des id des patients selectionner  */ }
+    const [patientSelectionner, setPatientSelectionner] = useState([])
 
-    {/* Boolean multi variation*/}
-    const [variation, setVariaton] = useState(false)
+    {/*  methode de comparaison selectionné  */ }
+    const [methodeComparaison, setMethodeComparaison] =  useState("lcss")
 
-    {/* Comparaison Methods*/}
-    const [method, setMethod] = useState("lcss")
+    const handleMethodeComparaison= (e) => {
+        setMethodeComparaison(e.target.value)
+    }
 
-    const methods = [
+    {/*  methode de comparaison disponible  */ }
+    const methodesComparaison = [
         {value: "lcss", label:"Longuest Common SubSequence"},
         {value: "dtw", label:"Dynamic Time Warping"},
         {value: "soft_dtw", label:"Soft Dynamic Time Warping"},
         {value: "tsl_dtw", label:"TsLearn Dynamic Time Warping"},
     ]
-    useEffect( () => {
-        console.log("method : ", method)
-    }, [method])
 
-    const handleChangeMethodeComparaison = (e) => {
-        const selectedValue = e.target.value;
-        setMethod(selectedValue);
+    {/*  boolean de multivariance */ }
+    const [multiVariance, setMultiVariance] = useState(false)
+
+    {/*  matrice de distance */ }
+    const [matriceDistance, setMatriceDistance] = useState([])
+
+    const getComparaison = () => {
+        {/* préparation de la requete */ }
+        let url = "http://127.0.0.1:8000/comparison?"
+        {/* ajouter les patients sélectionnés */ }
+        const values = patientSelectionner
+        .map(patient => `value=${patient}`)
+        .join("&")
+        url += `${values}`
+        {/* ajouter la méthode de comparaison choisit */ }
+        url += `&metric=${methodeComparaison}`
+        {/* ajouter l'état de la multiVariance */ }
+        url += `&multi=${multiVariance}`
+
+        console.log("URL finale :", url)
+
+        axios
+            .get(url)
+            .then( response => {
+                console.log("Reponse de la requete :", response.data)
+                {/* Recuperer les données */ }
+                setMatriceDistance(response.data)
+                {/* Recuperer l'image */ }
+                let image = "../../../visuals/"
+                if (patientSelectionner.length === 2){
+                    image += "compPlot.png"
+                } else {
+                    image += "HeatMap.png"
+                }
+                console.log("Image url :" , image)
+                setImageComparaison(image)
+            })
+            .catch( error => {
+                console.error("Erreur lors de la requete : ", error)
+            })
     }
+
+    {/* --------------- Recuperer les données d'un patient en fonction de son id  ----------------------*/}
+    {/* liste des données des patients selectionnées */}
+    const [patientsDatas, setPatientsDatas] = useState([])
+
+    const GetPatientData = (id_patient) => {
+        {/* préparation de la requete */ }
+        let url = `http://127.0.0.1:8000/patient?id=${id_patient}`
+
+        axios
+            .get(url)
+            .then( response => {
+                console.log("Reponse de la requete :", response.data)
+                {/* Recuperer les données et les ajouter a la liste */ }
+                setPatientsDatas(Datas => [...Datas, response.data])
+
+            })
+            .catch( error => {
+                console.error("Erreur lors de la requete : ", error)
+            })
+    }
+
+    {/* recuperer les données de tous les patients selectionné */}
+    const GetPatientsDatas = () => {
+        for( const id_patient of patientSelectionner.patient_ids){
+            GetPatientData(id_patient)
+            console.log("Recuperation des donnees pour le patient :", patientSelectionner.patient_ids)
+        }
+    }
+    {/* --------------------------- CLUSTERING  -------------------------------*/}
+
+    {/* liste des clusters (avec les patients ) */}
+    const [clusters, setClusters] = useState([])
     
-    {/* Image result*/}
-    const [resultImage, setResultImage] = useState("")
+    const GetClusters = () => {
+        {/* préparation de la requete */ }
+        let url = `http://127.0.0.1:8000/cluster/get_all_clusters_and_patients`
 
-    const getResultImage = () => {
-        axios.get(`http://127.0.0.1:8000/method=${method}&variation=${variation}`)
-        .then(response => {
-            console.log(response.data)
-            setResultImage(response.data)
-
-        }).catch(error => {
-            console.log("Error when fetching datas : ",error)
-        })
+        axios
+            .get(url)
+            .then( response => {
+                console.log("Reponse de la requete :", response.data)
+                {/* Recuperer les données */ }
+                setClusters(response.data)
+            })
+            .catch( error => {
+                console.error("Erreur lors de la requete : ", error)
+            })
     }
 
+     {/* Strategie de clustering selectionnee */ }
+    const [strategieClustering, setStrategieClustering] = useState("kmean")
+    const StrategiesClustering = [
+        {value: "kmean", label:"K-Means"},
+        {value: "hirarchical_clustering", label:"Hierarchical Clustering"},
+        {value: "dbscan", label:"DBSCAN"}, 
+    ]
+    {/* nombre de cluster choisi */ }
+    const [nombreClusters, setNombreCluster] = useState(1)
 
-    {/* ----------------- Swapy -------------------*/}
+    {/* Strategie de comparaison */ }
+    const [strategieComparaison, setStrategieComparaison] = useState("None")
+
+    const [clusterGenerer, setClusterGenerer] = useState([])
+
+    const GenererCluster = () => {
+        {/* préparation de la requete */ }
+        let url = `http://127.0.0.1:8000/cluster/cluster?`
+
+        url += `clusteringStrategy=${strategieClustering}&`
+        url += `comparisonStrategy=${strategieComparaison}&`
+        url += `nbCluster=${nombreClusters}&`
+
+        const listedPatient = patientSelectionner
+        .map(patient => `listedPatients=${patient}`)
+        .join("&")
+        url += `${listedPatient}`
+
+        console.log("url finale :" , url)
+
+        axios
+            .get(url)
+            .then( response => {
+                console.log("Reponse de la requete :", response.data)
+                {/* Recuperer les données */ }
+                setClusterGenerer(response.data)
+            })
+            .catch( error => {
+                console.error("Erreur lors de la requete : ", error)
+            })
+
+    }
+
+   {/* ----------------- Swapy -------------------*/}
     const swapy = useRef(null)
     const container = useRef(null)
     const [swapyLock, setSwapyLock] = useState(false)
@@ -110,25 +202,25 @@ const Comparaison = () => {
         }
     }, [swapyLock]) // run on mount + when swapyLock change is value
 
+
   return (
-    // Component
     <div className='w-100% h-100%'>
         
-        {/* Settings Bar */}
+        {/* Parametres */}
         <div className='w-100%'>
             <div className="flex justify-between items-center px-4 py-2 bg-slate-100/70 rounded-xl shadow-md border border-slate-300 dark:bg-slate-800/50 dark:border-slate-700">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Settings</h3>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Parametres</h3>
                 <div className="flex items-center gap-4">
                     
                     {/* Variation Boolean  */}
                     <div className="flex items-center">
-                        <span className="text-slate-900 dark:text-slate-100 mr-2 text-sm">Multiple Variations :</span>
+                        <span className="text-slate-900 dark:text-slate-100 mr-2 text-sm">Variation Multiple :</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
                                 className="sr-only peer"
-                                checked={variation}
-                                onChange={() => setVariaton(!variation)} 
+                                checked={multiVariance}
+                                onChange={() => setMultiVariance(!multiVariance)} 
                             />
                             <div className="w-10 h-5 bg-gray-300 rounded-full peer peer-checked:bg-green-500 peer-focus:ring-2 peer-focus:ring-green-400 dark:peer-focus:ring-green-600 transition-all"/>
                         </label>
@@ -162,26 +254,27 @@ const Comparaison = () => {
                                 minHeight : '37.8rem',
                                 overflow : 'auto',
                             }}>
-                                {patients.map( (patient) => (
+                                {patientsId.map( (patientId) => (
                                     <div
-                                        key={patient.id}
+                                        key={patientId}
                                         onClick={ () => {
-                                            const alreadySelected = selectedPatients.find( (idpatient) => idpatient.id === patient.id)
+                                            const alreadySelected = patientSelectionner.includes(patientId)
                                             if (alreadySelected){
-                                                // if in the list , remove him
-                                                setSetlectedPatients(selectedPatients.filter( (idpatient) => idpatient.id !== patient.id))
+                                                {/*  si il est dans la liste on l'enleve*/}
+                                                setSetlectedPatients(patientSelectionner.filter( (id) => id !== patientId))
                                             } else {
-                                                // if not , add him 
-                                                setSetlectedPatients([...selectedPatients, patient])
+                                                {/* sinon on l'ajoute */}
+                                                setSetlectedPatients([...patientSelectionner, patientId])
                                             } 
                                         }}
-                                        className={`${selectedPatients.find( (idpatient) => idpatient.id === patient.id)
+                                        className={`${
+                                            patientSelectionner.includes(patientId)
                                             ? 'bg-green-500 dark:hover:bg-green-300'
                                             : 'dark:bg-slate-700 dark:hover:bg-slate-600'
                                         } p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex items-center transition-all cursor-pointer`}
                                     > 
                                         <span className="text-slate-800 dark:text-slate-100 font-medium">
-                                            {`Patient ${patient.id}`}
+                                            {`Patient ${patientId}`}
                                         </span>
                                     </div>    
                                 ))}
@@ -199,9 +292,9 @@ const Comparaison = () => {
                             Graphique
                         </h3>
                         <div className="w-100% h-100% flex justify-center items-center">
-                            {patientsData ? (
+                            {patientsDatas ? (
                                 <PlotlyLineGraph
-                                    data={patientsData}
+                                    data={patientsDatas}
                                     GraphTitle={"Données des Patients Sélectionnés"}
                                     GraphWidth={800}
                                     GraphHeight={620}
@@ -230,16 +323,16 @@ const Comparaison = () => {
                         <select
                             id="methode-select"
                             className="w-30 p-2 border border-gray-300 rounded-md"
-                            value={method || ''}
-                            onChange={handleChangeMethodeComparaison}
+                            value={methodeComparaison || ''}
+                            onChange={handleMethodeComparaison}
                         >
-                            {methods.map((method) => (
-                            <option key={method.value} value={method.value}>
-                                {method.label}
+                            {methodesComparaison.map( (methode) => (
+                            <option key={methode.value} value={methode.value}>
+                                {methode.label}
                             </option>
                             ))}
                         </select>   
-                        { selectedPatients.length >= 2 && (
+                        { patientSelectionner.length >= 2 && (
                             <>
                                 <button
                                     className="px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600"
@@ -248,8 +341,8 @@ const Comparaison = () => {
                                     Comparer
                                 </button>
                                 <div>
-                                    {resultImage && (
-                                        <img src={resultImage} alt="Image de Comparaison" />
+                                    {imageComparaison && (
+                                        <img src={imageComparaison} alt="Image de Comparaison" />
                                     )}
                                 </div>
                             </>
