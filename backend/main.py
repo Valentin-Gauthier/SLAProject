@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import sequences, index
+from app.routers import sequences, index, comparison
+from app.models.DatabaseConnection import DatabaseConnection
 
 app = FastAPI()
 
@@ -17,6 +18,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+db_connection = DatabaseConnection.get_instance()
+db_connection.connect("postgres://postgres:password@localhost:5432/projet_technique")
 
 app.include_router(sequences.router, prefix="/sequences", tags=["Sequences"])
 app.include_router(index.router)
+app.include_router(comparison.router)
+
+# Déconnecter la base de données lors de l'arrêt de l'application
+@app.on_event("shutdown")
+def shutdown_event():
+    db_connection.disconnect()

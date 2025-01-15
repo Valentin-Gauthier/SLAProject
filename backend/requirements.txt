@@ -1,0 +1,7 @@
+matplotlib
+tslearn
+dtaidistance
+fastapi
+uvicorn
+seaborn
+psycopg2
