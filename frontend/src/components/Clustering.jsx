@@ -55,11 +55,13 @@ const Clustering = () => {
 
     {/* recuperer les données de tous les patients selectionné */}
     const GetPatientsDatas = () => {
-        for( const id_patient of patientSelectionner.patient_ids){
+        for( const id_patient of patientSelectionner){
             GetPatientData(id_patient)
-            console.log("Recuperation des donnees pour le patient :", patientSelectionner.patient_ids)
+            console.log("Recuperation des donnees pour le patient :", id_patient)
         }
     }
+
+
     {/* --------------------------- CLUSTERING  -------------------------------*/}
 
     {/* liste des clusters (avec les patients ) */}
@@ -228,8 +230,9 @@ const Clustering = () => {
                                     {/*  si il est dans la liste on l'enleve*/}
                                     setSetlectedPatients(patientSelectionner.filter( (id) => id !== patientId))
                                 } else {
-                                    {/* sinon on l'ajoute */}
+                                    {/* sinon on l'ajoute et on recupere les données*/}
                                     setSetlectedPatients([...patientSelectionner, patientId])
+                                    GetPatientData(patientId)
                                 } 
                             }}
                             className={`${patientSelectionner.includes(patientId)
@@ -242,7 +245,6 @@ const Clustering = () => {
                             </span>
                         </div>    
                     ))
-                    
                     }
                     </div>
                 </div>

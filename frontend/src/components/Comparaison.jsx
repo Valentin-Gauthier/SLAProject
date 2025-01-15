@@ -10,6 +10,9 @@ const Comparaison = () => {
      {/*  liste des id des patients */ }
     const [patientsId, setPatientsId] = useState([])
 
+    {/*  liste des id des patients selectionner  */ }
+    const [patientSelectionner, setPatientSelectionner] = useState([])
+
     const GetPatientsId = () => {
         {/* préparation de la requete */ }
         let url = "http://127.0.0.1:8000/allpatient"
@@ -33,9 +36,6 @@ const Comparaison = () => {
 
     {/*  url de l'image   */ }
     const [imageComparaison, setImageComparaison] = useState(null)
-
-    {/*  liste des id des patients selectionner  */ }
-    const [patientSelectionner, setPatientSelectionner] = useState([])
 
     {/*  methode de comparaison selectionné  */ }
     const [methodeComparaison, setMethodeComparaison] =  useState("lcss")
@@ -117,74 +117,12 @@ const Comparaison = () => {
 
     {/* recuperer les données de tous les patients selectionné */}
     const GetPatientsDatas = () => {
-        for( const id_patient of patientSelectionner.patient_ids){
+        for( const id_patient of patientSelectionner){
             GetPatientData(id_patient)
-            console.log("Recuperation des donnees pour le patient :", patientSelectionner.patient_ids)
+            console.log("Recuperation des donnees pour le patient :", id_patient)
         }
     }
-    {/* --------------------------- CLUSTERING  -------------------------------*/}
 
-    {/* liste des clusters (avec les patients ) */}
-    const [clusters, setClusters] = useState([])
-    
-    const GetClusters = () => {
-        {/* préparation de la requete */ }
-        let url = `http://127.0.0.1:8000/cluster/get_all_clusters_and_patients`
-
-        axios
-            .get(url)
-            .then( response => {
-                console.log("Reponse de la requete :", response.data)
-                {/* Recuperer les données */ }
-                setClusters(response.data)
-            })
-            .catch( error => {
-                console.error("Erreur lors de la requete : ", error)
-            })
-    }
-
-     {/* Strategie de clustering selectionnee */ }
-    const [strategieClustering, setStrategieClustering] = useState("kmean")
-    const StrategiesClustering = [
-        {value: "kmean", label:"K-Means"},
-        {value: "hirarchical_clustering", label:"Hierarchical Clustering"},
-        {value: "dbscan", label:"DBSCAN"}, 
-    ]
-    {/* nombre de cluster choisi */ }
-    const [nombreClusters, setNombreCluster] = useState(1)
-
-    {/* Strategie de comparaison */ }
-    const [strategieComparaison, setStrategieComparaison] = useState("None")
-
-    const [clusterGenerer, setClusterGenerer] = useState([])
-
-    const GenererCluster = () => {
-        {/* préparation de la requete */ }
-        let url = `http://127.0.0.1:8000/cluster/cluster?`
-
-        url += `clusteringStrategy=${strategieClustering}&`
-        url += `comparisonStrategy=${strategieComparaison}&`
-        url += `nbCluster=${nombreClusters}&`
-
-        const listedPatient = patientSelectionner
-        .map(patient => `listedPatients=${patient}`)
-        .join("&")
-        url += `${listedPatient}`
-
-        console.log("url finale :" , url)
-
-        axios
-            .get(url)
-            .then( response => {
-                console.log("Reponse de la requete :", response.data)
-                {/* Recuperer les données */ }
-                setClusterGenerer(response.data)
-            })
-            .catch( error => {
-                console.error("Erreur lors de la requete : ", error)
-            })
-
-    }
 
    {/* ----------------- Swapy -------------------*/}
     const swapy = useRef(null)
@@ -263,8 +201,9 @@ const Comparaison = () => {
                                                 {/*  si il est dans la liste on l'enleve*/}
                                                 setSetlectedPatients(patientSelectionner.filter( (id) => id !== patientId))
                                             } else {
-                                                {/* sinon on l'ajoute */}
+                                                {/* sinon on l'ajoute et on recupere les données*/}
                                                 setSetlectedPatients([...patientSelectionner, patientId])
+                                                GetPatientData(patientId)
                                             } 
                                         }}
                                         className={`${
