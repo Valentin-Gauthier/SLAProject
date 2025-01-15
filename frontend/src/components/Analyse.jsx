@@ -35,6 +35,7 @@ const Analyse = () => {
             maxHeight : '52rem',
             minHeight : '52rem',
             overflow : 'hidden',
+            marginBottom: '10px'
           }}>
             <Link to="/">
               <Button 
