@@ -8,9 +8,9 @@ const PlotlyLineGraph = ({ data, GraphTitle, GraphWidth, GraphHeight, NameX, Nam
       layout={{
         width: GraphWidth,
         height: GraphHeight,
-        title: { text: GraphTitle },
-        xaxis: { title: { text: NameX } }, 
-        yaxis: { title: { text: NameY } },
+        title: { text: GraphTitle, font: {color: "#FFFFFF"} },
+        xaxis: { title: { text: NameX, font: {color: "#FFFFFF" } } }, 
+        yaxis: { title: { text: NameY, font: {color: "#FFFFFF" } } },
         paper_bgcolor: "rgba(0, 0, 0, 0)",
         plot_bgcolor: "rgba(0, 0, 0, 0)",
       }}
