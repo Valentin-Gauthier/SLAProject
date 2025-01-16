@@ -3,7 +3,7 @@ installer python 3.12   (entre 3.9 et 3.12 pour pouvoir utiliser tslearn)
 installer node.js       (Latest Stable Version) (v22.13.0 est sure de marcher)
 Installer Microsoft Visual C++ Build Tools      (installer Desktop development with C++ et bien sélectionner MSVC v142 et windows 10 SDK)
 
-DANS LE DOSSIER PRINCIPALE (au meme niveau que front end et back end)
+DANS LE DOSSIER PRINCIPAL (au meme niveau que front end et back end)
 python3.12 -m venv env
 #Pour windows:
 env\Scripts\activate
