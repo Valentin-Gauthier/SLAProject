@@ -206,7 +206,7 @@ const Comparaison = () => {
                     
                     {/* Variation Boolean  */}
                     <div className="flex items-center">
-                        <span className="text-slate-900 dark:text-slate-100 mr-2 text-sm">Variation Multiple :</span>
+                        <span className="text-slate-900 dark:text-slate-100 mr-2 text-sm">Multivariable :</span>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
                                 type="checkbox"
@@ -325,7 +325,7 @@ const Comparaison = () => {
                         <h3 className="text-xl font-bold text-center mb-6 text-slate-900 dark:text-slate-100">
                             Comparaison des Patients Selectionnés
                         </h3>
-                        <label id="select-method">Selectionnez une méthode : </label>
+                        <label id="select-method" className='text-white'>Selectionnez une méthode : </label>
                         <select
                             id="methode-select"
                             className="w-30 p-2 border border-gray-300 rounded-md"
