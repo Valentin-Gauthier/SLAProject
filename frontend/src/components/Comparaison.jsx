@@ -3,6 +3,7 @@ import { createSwapy } from 'swapy'
 import Search from './Search'
 import PlotlyLineGraph from "./PlotlyLineGraph"
 import axios from "axios" 
+import { Link } from "react-router-dom";
 
 const Comparaison = () => {
 
@@ -186,6 +187,20 @@ const Comparaison = () => {
             <div className="flex justify-between items-center px-4 py-2 bg-slate-100/70 rounded-xl shadow-md border border-slate-300 dark:bg-slate-800/50 dark:border-slate-700">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Parametres</h3>
                 <div className="flex items-center gap-4">
+                <Link to="/">
+                <button
+                        className="px-2 py-1 bg-blue-500 text-white rounded-md text-sm"
+                        >Accueil
+                        
+                    </button>
+                </Link>
+                <Link to="/clustering">
+                <button
+                        className="px-2 py-1 bg-blue-500 text-white rounded-md text-sm"
+                        >Clustering
+                        
+                    </button>
+                </Link>
                     
                     {/* Variation Boolean  */}
                     <div className="flex items-center">

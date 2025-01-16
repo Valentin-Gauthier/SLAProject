@@ -31,3 +31,95 @@ npm run dev
 ////////
 pip uninstall numpy
 pip install numpy==1.26.4
+
+# Configuration de la Base de Données pour le Projet
+
+Vous trouverez ci-dessous les étapes pour configurer la base de données PostgreSQL avec l'extension TimescaleDB. Les fichiers nécessaires, y compris le dump de la base, sont disponibles sur le drive que je vous ai partagé.
+
+---
+
+### Installation des outils
+
+#### PostgreSQL
+
+- **Windows** : https://www.postgresql.org/download/windows/
+- **Mac** :
+    - Via Homebrew :
+        brew install postgresql@17
+    - Ou avec l'installeur officiel : https://www.postgresql.org/download/macosx/
+
+#### TimescaleDB
+
+- **Windows** : https://docs.timescale.com/self-hosted/latest/install/installation-windows/
+- **Mac** : https://docs.timescale.com/self-hosted/latest/install/installation-macos/
+
+---
+
+### Configuration des Variables d'Environnement
+
+Dans un terminal, configurez les variables d'environnement pour simplifier les commandes ultérieures :
+
+#### Sur macOS
+
+export SOURCE=postgres://postgres:password@localhost:5432/projet_technique
+export TARGET=postgres://postgres:password@localhost:5432
+
+#### Sur Windows
+
+set SOURCE=postgres://postgres:password@localhost:5432/projet_technique
+set TARGET=postgres://postgres:password@localhost:5432
+
+---
+
+### Configuration de PostgreSQL
+
+1. Ajouter le chemin du dossier `bin` de PostgreSQL au PATH :
+    - **Windows** : Ajoutez le chemin vers le dossier `bin` (par exemple, `C:\Program Files\PostgreSQL\17\bin`) dans les variables d'environnement.
+    
+2. Modifier le fichier `postgresql.conf` :
+    - Localisez le fichier `postgresql.conf` (généralement dans le dossier de configuration de votre installation PostgreSQL).
+    - Ajoutez ou modifiez la ligne suivante :
+        shared_preload_libraries = 'timescaledb'
+    - Redémarrez le service PostgreSQL pour appliquer les modifications.
+
+---
+
+### Création de la Base de Données
+
+1. Se connecter à PostgreSQL :
+    - **Sur macOS** :
+        psql -U postgres -d "$TARGET"
+    - **Sur Windows** :
+        psql -U postgres -d "%TARGET%"
+
+2. Créer une base et un rôle utilisateur :
+
+    CREATE DATABASE projet_technique;
+    CREATE ROLE raphaelmalidin WITH LOGIN;
+
+3. Se connecter à la base et activer TimescaleDB :
+
+    \c projet_technique
+    CREATE EXTENSION IF NOT EXISTS timescaledb;
+
+---
+
+### Restauration de la Base de Données
+
+1. Préparer la base pour la restauration :
+
+    SELECT timescaledb_pre_restore();
+
+2. Restaurer la base depuis un autre terminal :
+
+    pg_restore -Fc -d projet_technique -h localhost -U postgres chemin/vers/projet_technique.bak
+
+3. Finaliser la restauration des hypertables :
+
+    SELECT timescaledb_post_restore();
+
+---
+
+### Remarques
+
+- Remplacez `password` dans les variables d'environnement par votre mot de passe PostgreSQL.

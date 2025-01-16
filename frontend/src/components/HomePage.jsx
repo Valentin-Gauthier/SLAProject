@@ -6,7 +6,7 @@ import Navbar from './Navbar'
 
 const HomePage = () => {
   return (
-    <div className="relative min-h-screen w-screen overflow-x-hidden">
+    <div className="relative min-h-screen w-screen overflow-x-hidden" >
         <Navbar />
         <Accueil />
         <APropos />

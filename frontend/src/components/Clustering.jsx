@@ -3,6 +3,7 @@ import { createSwapy } from 'swapy'
 import Search from './Search'
 import PlotlyLineGraph from "./PlotlyLineGraph"
 import axios from "axios" 
+import { Link } from "react-router-dom";
 
 const Clustering = () => {
 
@@ -214,6 +215,20 @@ const Clustering = () => {
             <div className="flex justify-between items-center px-4 py-2 bg-slate-100/70 rounded-xl shadow-md border border-slate-300 dark:bg-slate-800/50 dark:border-slate-700">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Parametres</h3>
                 <div className="flex items-center gap-4">
+                <Link to="/">
+                <button
+                        className="px-2 py-1 bg-blue-500 text-white rounded-md text-sm"
+                        >Accueil
+                        
+                    </button>
+                </Link>
+                <Link to="/comparaison">
+                <button
+                        className="px-2 py-1 bg-blue-500 text-white rounded-md text-sm"
+                        >Comparaison
+                        
+                    </button>
+                </Link>
 
                     {modCluster?  
                     <button
@@ -355,9 +370,9 @@ const Clustering = () => {
         </div>
 
         {afficherFormulaire && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="w-full max-w-lg h-full max-h-[50vh] space-y-6 pt-5 px-6 bg-slate-100/70 rounded-xl shadow-md border border-slate-300 dark:bg-slate-800/50 dark:border-slate-700 flex flex-col justify-between">
-                    <h1 className="text-2xl font-bold white mb-6 text-center">
+            <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center">
+                <div className="w-full max-w-lg h-full max-h-[70vh] space-y-6 pt-5 px-6 bg-slate-100/70 rounded-xl shadow-md border border-slate-300 dark:bg-slate-800 dark:border-slate-700 flex flex-col justify-between">
+                    <h1 className="text-2xl font-bold white mb-6 text-center text-white">
                         Formulaire de Clustering
                     </h1>
 
@@ -365,7 +380,7 @@ const Clustering = () => {
                     <div className="mb-4">
                         <label
                         htmlFor="method"
-                        className="block white font-medium mb-2"
+                        className="block white font-medium mb-2 text-white"
                         >
                         Type de méthode :
                         </label>
@@ -387,7 +402,7 @@ const Clustering = () => {
                     <div className="mb-4">
                         <label
                             id="clusters"
-                            className="block white font-medium mb-2"
+                            className="block white font-medium mb-2 text-white"
                         >
                             Nombre de clusters :
                         </label>
@@ -406,7 +421,7 @@ const Clustering = () => {
                     <div className="mb-4">
                         <label
                         htmlFor="methodComparaison"
-                        className="block white font-medium mb-2"
+                        className="block white font-medium mb-2 text-white"
                         >
                             Type de méthode de comparaison :
                         </label>

@@ -48,18 +48,25 @@ const Navbar = () => {
     >
       <header className="absolute top-1/2 w-full -translate-y-1/2">
         <nav className="flex size-full items-center justify-between p-4">
-          {/*Analyse button */}
+          {/*Comparaison button */}
           <div className="flex items-center gap-7">
             <Button
-              id="Analyse"
-              title="Analyse"
+              id="Comparaison"
+              title="Comparaison"
               rightIcon={<TiLocationArrow />}
               containerClass="bg-blue-50 md:flex hidden items-center justify-center gap-1"
-              link="/Analyse"
+              link="/Comparaison"
+            />
+            <Button
+              id="Clustering"
+              title="Clustering"
+              rightIcon={<TiLocationArrow />}
+              containerClass="bg-blue-50 md:flex hidden items-center justify-center gap-1"
+              link="/Clustering"
             />
           </div>
 
-          {/* Navigation Links and Audio Button */}
+          {/* Navigation Links */}
           <div className="flex h-full items-center">
             <div className="hidden md:block">
               {navItems.map((item, index) => (
