@@ -208,7 +208,9 @@ const Clustering = () => {
     }, [swapyLock]) // run on mount + when swapyLock change is value
  
   return (
-    <div className='w-100% h-100%'>
+    <div className='w-100% h-100%' 
+    style={{ background: "linear-gradient(135deg, #05192d, #1b4d4b)" }}
+    >
 
         {/* Settings Bar */}
         <div className='w-100%'>
