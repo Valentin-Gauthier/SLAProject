@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from "axios"
+import HomePage from './components/HomePage'
 
 function App() {
 
@@ -19,7 +20,7 @@ function App() {
 
   return (
     <>
-      <h3>{message}</h3>
+      <HomePage />
     </>
   )
 }

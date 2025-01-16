@@ -16,6 +16,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/Analyse" element={<Analyse />} />
         <Route path="/Comparaison" element={<Comparaison />} />
         <Route path="/Clustering" element={<Clustering />} />
+        
       </Routes>
     </BrowserRouter>
   </StrictMode>
