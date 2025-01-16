@@ -9,28 +9,28 @@ python3.12 -m venv env
 env\Scripts\activate
 Pour MacOS:
 source env/bin/activate
+////DANS LE DOSSIER BACKEND
 pip install -r requirements.txt
+pip uninstall numpy
+pip install numpy==1.26.4
+/////FAIRE UN NOUVEAU TERMINAL POUR LE FRONT
 cd frontend
 npm install
 (si la commande ne marche pas essayer de l'executer dans un CMD)
 
-Pour faire fonctionner le site:
-
-DANS LE DOSSIER BACKEND:
+//////Pour faire fonctionner le site:
+Si ce n'est pas déja fait activer l'env:
 #Pour windows:
 env\Scripts\activate
 Pour MacOS:
 source env/bin/activate
+DANS LE DOSSIER BACKEND:
 uvicorn main:app --reload --host 127.0.0.1 --port 8000
 
 DANS LE DOSSIER FRONTEND: (utilisez un autre terminale pour ne pas avoir a éteindre le serveur backend)
 npm run dev
 (si la commande ne marche pas essayer de l'executer dans un CMD)
 
-
-////////
-pip uninstall numpy
-pip install numpy==1.26.4
 
 # Configuration de la Base de Données pour le Projet
 
