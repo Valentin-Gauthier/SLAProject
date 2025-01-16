@@ -33,17 +33,7 @@ const Accueil = () => {
         className="relative z-10 h-dvh w-screen overflow-hidden rounded-lg"
         style={{ background: "linear-gradient(135deg, #2c003e, #800000)" }}
       >
-        <div>
-          <div className="mask-clip-path absolute-center absolute z-50 size-64 overflow-hidden rounded-lg flex justify-center items-center">
-            {<Button
-              id="Analyse"
-              title="Analyse"
-              rightIcon={<TiLocationArrow />}
-              containerClass="bg-blue-50 md:flex hidden items-center justify-center gap-1"
-              link={"/Analyse"}
-            />}
-          </div>
-          
+        <div>  
         </div>
 
         <h1 className="special-font hero-heading absolute bottom-5 right-5 z-40 text-blue-100">
