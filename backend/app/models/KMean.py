@@ -16,64 +16,92 @@ class KMean(ClusteringStrategy):
         # 1. Récupération des données des patients de la base de données
         sql = 'SELECT "1" AS patient_id, "61" AS valeur FROM examen ORDER BY "1", "3" DESC'
         res = db_connection.execute(sql)
-        # print("Résultats de la requête :", res)
 
-        # Convertir les résultats en DataFrame pour faciliter les manipulations
+        # Convertir les résultats en DataFrame
         data = pd.DataFrame(res, columns=["patient_id", "value"])
+
         # 2. Gestion des NaN (valeurs manquantes)
-        # Supprimer les lignes avec des NaN ou les remplir avec une valeur par défaut
-        data = data.dropna(subset=["value"])  # Supprime les lignes avec NaN dans "value"
-        # 3. Ne garder que les 5 derniers RDV des patients
+        data = data.dropna(subset=["value"])
+
+        # 3. Ne garder que les 4 derniers RDV des patients
         data = data.groupby("patient_id").head(4)
         res = data.values.tolist()
-        # print("Résultats de la requête après data :", res)
 
-        # 3. Dictionnaire de correspondance patient_id -> valeurs
-        patient_id_to_values = {}
-
-        # Utilisation de defaultdict pour facilement ajouter des valeurs dans des listes
+        # 4. Créer un dictionnaire patient_id -> valeurs
         patient_id_to_values = defaultdict(list)
-
-        # Remplir le dictionnaire
-        for cle, valeur in res:
-            patient_id_to_values[cle].append(valeur)
-
-        # Conversion en dictionnaire normal
+        for patient_id, value in res:
+            patient_id_to_values[patient_id].append(value)
         patient_id_to_values = dict(patient_id_to_values)
 
-        # print("Patient_id_to_values : ", patient_id_to_values)
-
-        # 4. Préparer les données pour KMeans
-        liste_de_liste_de_valeur = []
-        for value in patient_id_to_values.values():
-            liste_de_liste_de_valeur.append(np.array(value))
-
-        # print("Liste de liste de valeur : ", liste_de_liste_de_valeur[:20])
-        X = np.array(liste_de_liste_de_valeur)
-        #print("X : ", X)
-
         # 5. Préparer les données pour KMeans
-        # X = np.array(data["value"]).reshape(-1, 1)  # Les données pour le clustering
+        liste_de_liste_de_valeur = [np.array(value) for value in patient_id_to_values.values()]
+        X = np.array(liste_de_liste_de_valeur)
 
-        # 5. Appliquer K-Means
-        # Entraîner le modèle K-Means avec nbCluster clusters
+        # 6. Appliquer K-Means
         kmeans = KMeans(n_clusters=nbCluster, random_state=0)
         kmeans.fit(X)
 
         # Récupérer les prédictions (clusters des points)
         y_kmeans = kmeans.predict(X)
 
-        # 5. Créer un dictionnaire patient_id -> cluster_id
-        patient_id_to_cluster_id = {}
-        for i in range(len(patient_id_to_values)):
-            patient_id_to_cluster_id[int(list(patient_id_to_values.keys())[i])] = int(y_kmeans[i])
-
-        # print("patient_id_to_cluster_id : ", patient_id_to_cluster_id)
-
-        # Mettre l'attribut cluster de chaque patient dans la base de données à la valeur y_kmeans[i]
+        # 7. Créer un dictionnaire patient_id -> cluster_id
+        patient_id_to_cluster_id = {
+            int(list(patient_id_to_values.keys())[i]): int(y_kmeans[i])
+            for i in range(len(patient_id_to_values))
+        }
+ 
+        # Mettre à jour les clusters dans la base de données
         for patient_id, cluster_id in patient_id_to_cluster_id.items():
             sql = 'UPDATE patient SET "185" = %s WHERE "1" = %s;'
-            res = db_connection.execute(sql, (cluster_id, patient_id))
+            db_connection.execute(sql, (cluster_id, patient_id))
+
+        # 8. Visualisation avec UMAP
+        reducer = umap.UMAP(n_components=2, random_state=42)
+        X_embedded = reducer.fit_transform(X)
+
+        # Réduire les centroïdes à 2 dimensions
+        centroids_embedded = reducer.transform(kmeans.cluster_centers_)
+
+        # Création du DataFrame pour Plotly
+        plot_data = pd.DataFrame({
+            "UMAP1": X_embedded[:, 0],
+            "UMAP2": X_embedded[:, 1],
+            "Cluster": y_kmeans,
+            "Patient ID": list(patient_id_to_values.keys())
+        })
+
+        # Génération du graphique interactif avec Plotly
+        fig = px.scatter(
+            plot_data,
+            x="UMAP1",
+            y="UMAP2",
+            color="Cluster",
+            hover_data={"Patient ID": True, "UMAP1": False, "UMAP2": False, "Cluster": True},
+            title="Visualisation des clusters avec K-Means et UMAP",
+        )
+
+        # Ajouter les centroïdes
+        fig.add_trace(go.Scatter(
+            x=centroids_embedded[:, 0],
+            y=centroids_embedded[:, 1],
+            mode="markers",
+            name="Centroids",
+            marker=dict(size=15, color="black", symbol="x"),
+            text=[f"Centroid {i}" for i in range(len(centroids_embedded))],
+            hoverinfo="text"
+        ))
+
+        # 9. Sauvegarder le graphique en tant que fichier HTML
+        output_dir = "../frontend/public/visuals/"
+        os.makedirs(output_dir, exist_ok=True)
+        html_path = os.path.join(output_dir, "clusteringTotal.html")
+        fig.write_html(html_path)
+        imagePathForFront = "/visuals/clusteringTotal.html"
+
+        return {
+            "patient_to_cluster": patient_id_to_cluster_id,
+            "visualization_path": imagePathForFront
+        }
 
 
     def do_clustering(self, listeIdPatients: list, nbCluster: int, db_connection, comparisonStrategy: str):
@@ -156,13 +184,13 @@ class KMean(ClusteringStrategy):
             # ))
 
             # Création du dossier si nécessaire
-            output_dir = "../visuals/"
+            output_dir = "../frontend/public/visuals/"
             os.makedirs(output_dir, exist_ok=True)
 
             # Sauvegarder le graphique en tant que fichier HTML
             html_path = os.path.join(output_dir, "clusters_visualization.html")
             fig.write_html(html_path)
-
+            imagePathForFront = "/visuals/clusters_visualization.html"
 
             # OU IMAGE PNG
             # reducer = umap.UMAP(n_components=2, random_state=42)
@@ -191,7 +219,7 @@ class KMean(ClusteringStrategy):
             return {
                 "patient_to_cluster": patient_to_cluster,
                 "cluster_to_patients": dict(cluster_to_patients),
-                "visualization_path": html_path,  # Chemin du graphique interactif
+                "visualization_path": imagePathForFront,  # Chemin du graphique interactif
             }
 
         except Exception as e:

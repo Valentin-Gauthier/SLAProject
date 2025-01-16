@@ -21,7 +21,9 @@ def comparaison(ids, methode, multi=False):
     elif (methode=="dtw"):
         if(multi):
             strategy = CompDTW(multi=True)
-        else: strategy = CompDTW(multi=False)
+        else: 
+            print("bien dans le else")
+            strategy = CompDTW(multi=False)
     # if(multi):
     #     strategy = CompDTW(multi=True)
     # else:

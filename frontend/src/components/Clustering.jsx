@@ -18,7 +18,7 @@ const Clustering = () => {
             .then( response => {
                 console.log("Reponse de la requete :", response.data)
                 {/* Recuperer les données */ }
-                setPatientsId(response.data)
+                setPatientsId(response.data.patient_ids)
             })
             .catch( error => {
                 console.error("Erreur lors de la requete : ", error)
@@ -32,26 +32,36 @@ const Clustering = () => {
     {/*  liste des id des patients selectionner  */ }
     const [patientSelectionner, setPatientSelectionner] = useState([])
 
+     {/* url de l'image generer par le clustering*/}
+     const [imageHtmlClustering, setImageHtmlClustering] = useState()
 
     {/* liste des données des patients selectionnées */}
     const [patientsDatas, setPatientsDatas] = useState([])
 
     const GetPatientData = (id_patient) => {
-        {/* préparation de la requete */ }
-        let url = `http://127.0.0.1:8000/patient?id=${id_patient}`
-
+        // Préparation de la requête
+        let url = `http://127.0.0.1:8000/patient?id=${id_patient}`;
+    
         axios
             .get(url)
-            .then( response => {
-                console.log("Reponse de la requete :", response.data)
-                {/* Recuperer les données et les ajouter a la liste */ }
-                setPatientsDatas(Datas => [...Datas, response.data])
-
+            .then(response => {
+                console.log("Données reçues :", response.data.patients);
+                // Récupérer les données et les ajouter si elles ne sont pas déjà présentes
+                setPatientsDatas(prevPatientsDatas => {
+                    const patientExist = prevPatientsDatas.some(patient => patient.id === id_patient);
+                    if (!patientExist) {
+                        return [...prevPatientsDatas, ...response.data.patients];
+                    } else {
+                        console.log(`Les données du patient ${id_patient} sont déjà chargées`);
+                        return prevPatientsDatas.filter(patient => patient.id !== id_patient);
+                    }
+                });
             })
-            .catch( error => {
-                console.error("Erreur lors de la requete : ", error)
-            })
-    }
+            .catch(error => {
+                console.error("Erreur lors de la requête : ", error);
+            });
+    };
+    
 
     {/* recuperer les données de tous les patients selectionné */}
     const GetPatientsDatas = () => {
@@ -76,18 +86,49 @@ const Clustering = () => {
             .get(url)
             .then( response => {
                 console.log("Reponse de la requete :", response.data)
-                {/* Recuperer les données */ }
+                {/* Recuperer les données  et les mettre dans le format => [id_cluster : [liste des patients],...] */ }
                 setClusters(response.data)
+                const cacheBuster = new Date().getTime(); // Horodatage unique
+                const imageUrl = `/visuals/clusteringTotal.html?t=${cacheBuster}`; // Ajout du cache buster à l'URL
+                setImageHtmlClustering(imageUrl);
             })
             .catch( error => {
                 console.error("Erreur lors de la requete : ", error)
             })
     }
 
+    const formatDataForPlotly = () => {
+        const formattedData = [];
+        console.log("Données avant formatage :", patientsDatas);
+    
+        patientsDatas.forEach(patient => {
+            const { id, courbes } = patient;
+            Object.keys(courbes).forEach(key => {
+                const { nbJours: x, yData: y } = courbes[key];
+                formattedData.push({
+                    x: x, 
+                    y: y, 
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: `${key} (Patient ${id})`
+                });
+            });
+        });
+    
+        return formattedData;
+    };
+    
+
+    const [PlotlyPatientsDatas,setPlotlyPatientsDatas] = useState()
+    
+    useEffect( () => (
+    setPlotlyPatientsDatas(formatDataForPlotly())
+    ),[patientsDatas])
+
     {/* Strategie de clustering selectionnee */ }
-    const [strategieClustering, setStrategieClustering] = useState("kmean")
+    const [strategieClustering, setStrategieClustering] = useState("kmeans")
     const StrategiesClustering = [
-        {value: "kmean", label:"K-Means"},
+        {value: "kmeans", label:"K-Means"}, 
         {value: "hirarchical_clustering", label:"Hierarchical Clustering"},
         {value: "dbscan", label:"DBSCAN"}, 
     ]
@@ -95,7 +136,7 @@ const Clustering = () => {
     const [nombreClusters, setNombreCluster] = useState(1)
 
     {/* Strategie de comparaison */ }
-    const [strategieComparaison, setStrategieComparaison] = useState("None")
+    const [strategieComparaison, setStrategieComparaison] = useState("lcss")
 
     const [clustersGenerer, setClustersGenerer] = useState([])
 
@@ -108,7 +149,7 @@ const Clustering = () => {
         url += `nbCluster=${nombreClusters}&`
 
         const listedPatient = patientSelectionner
-        .map(patient => `listedPatients=${patient}`)
+        .map(patient => `listeIdPatients=${patient}`)
         .join("&")
         url += `${listedPatient}`
 
@@ -120,15 +161,16 @@ const Clustering = () => {
             .get(url)
             .then( response => {
                 console.log("Reponse de la requete :", response.data)
-                {/* Recuperer les données */ }
-                setClustersGenerer(response.data)
+                {/* Recuperer les données  et les mettre dans le format => [id_cluster : [liste des patients],...] */ }
+                setClusters(response.data.cluster_to_patients)
+                const cacheBuster = new Date().getTime(); // Horodatage unique
+                const imageUrl = `${response.data.visualization_path}?t=${cacheBuster}`; // Ajout du cache buster à l'URL
+                setImageHtmlClustering(imageUrl);
             })
             .catch( error => {
                 console.error("Erreur lors de la requete : ", error)
             })
-
     }
-
 
     {/* Changement de mod -> recuperer les clusters "par defaut" et les patients */ }
     const [modCluster, setModCluster] = useState(false)
@@ -228,10 +270,11 @@ const Clustering = () => {
                                 const alreadySelected = patientSelectionner.includes(patientId)
                                 if (alreadySelected){
                                     {/*  si il est dans la liste on l'enleve*/}
-                                    setSetlectedPatients(patientSelectionner.filter( (id) => id !== patientId))
+                                    setPatientSelectionner(patientSelectionner.filter( (id) => id !== patientId))
+                                    GetPatientData(patientId)
                                 } else {
                                     {/* sinon on l'ajoute et on recupere les données*/}
-                                    setSetlectedPatients([...patientSelectionner, patientId])
+                                    setPatientSelectionner([...patientSelectionner, patientId])
                                     GetPatientData(patientId)
                                 } 
                             }}
@@ -258,7 +301,7 @@ const Clustering = () => {
             <div data-swapy-item="main" className="h-100% space-y-6 pt-5 bg-slate-100/70 rounded-xl shadow-md border border-slate-300 dark:bg-slate-800/50 dark:border-slate-700 flex flex-col justify-center items-center">
                 <h3 className="text-xl font-bold text-center mb-6 text-slate-900 dark:text-slate-100">
                     {modCluster? 
-                        "Graphique" : "Clusters"
+                        "Clusters" : "Graphique"
                     }
                 </h3>
                 <div className="w-100% h-100% flex justify-center items-center"
@@ -267,23 +310,36 @@ const Clustering = () => {
                         minHeight : '38.9rem',
                         overflow : 'auto',
                     }}>
+                    {modCluster ? (
+                        Object.entries(clusters).map(([clusterId, patients]) => { // Parcourt chaque cluster par [clusterId, patients]
+                            return (
+                                <div
+                                    key={clusterId} // Clé unique pour chaque cluster
+                                    onClick={() => setIdClusterSelectionner(clusterId)} // Sélectionne le cluster au clic
+                                    className="dark:bg-slate-800 dark:hover:bg-slate-700 p-4 rounded-lg shadow-lg border border-slate-200 dark:border-slate-600 flex items-center justify-between transition-all cursor-pointer hover:shadow-xl"
+                                >
+                                    {/* Affichage du numéro du cluster */}
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-slate-800 dark:text-slate-100 font-semibold text-lg">
+                                            {`Cluster ${clusterId}`}
+                                        </span>
+                                    </div>
 
-                {modCluster ? 
-                clusters.map( (cluster) => (
-                    <div
-                    key={cluster.id}
-                    onClick={() => setIdClusterSelectionner(cluster.id)}
-                    className='dark:bg-slate-700 dark:hover:bg-slate-600 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex items-center transition-all cursor-pointer'
-                    >
-                    <span className="text-slate-800 dark:text-slate-100 font-medium">
-                        {`Cluster ${cluster.id}`}
-                    </span>
-                    </div>
-                ))
-                    :
-                    patientsDatas ? (
+                                    {/* Affichage du nombre de patients */}
+                                    <span className="text-gray-600 dark:text-gray-400 text-sm">
+                                        {patients.length > 0
+                                            ? `${patients.length} patient${patients.length > 1 ? 's' : ''}`
+                                            : "Aucun patient"}
+                                    </span>
+                                </div>
+                                
+                            );
+                            
+                        })
+                    ) :
+                    PlotlyPatientsDatas ? (
                         <PlotlyLineGraph
-                            data={patientsDatas}
+                            data={PlotlyPatientsDatas}
                             GraphTitle={"Données des Patients Sélectionnés"}
                             GraphWidth={800}
                             GraphHeight={620}
@@ -293,10 +349,10 @@ const Clustering = () => {
                     ) : (
                         <p>Sélectionnez des patients pour voir une analyse.</p>
                     )}
+
                 </div>
             </div>
         </div>
-
 
         {afficherFormulaire && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -322,8 +378,8 @@ const Clustering = () => {
                             required
                             >
                             <option value="kmeans">K-Means</option>
-                            <option value="hierarchical">Hierarchical Clustering</option>
-                            <option value="dbscan">DBSCAN</option>
+                            <option value="ward">Ward Hierarchical Clustering</option>
+                            <option value="kmedoids">K-medoids</option>
                         </select>
                     </div>
 
@@ -344,6 +400,29 @@ const Clustering = () => {
                             required
                             onChange={(e) => setNombreCluster(e.target.value)}
                             />
+                    </div>
+
+                    {/* Type de methodes de comparaison*/}
+                    <div className="mb-4">
+                        <label
+                        htmlFor="methodComparaison"
+                        className="block white font-medium mb-2"
+                        >
+                            Type de méthode de comparaison :
+                        </label>
+                        <select
+                            id="methodComparaison"
+                            name="methodComparaison"
+                            value={strategieComparaison}
+                            onChange={(e) => setStrategieComparaison(e.target.value)}
+                            className="w-full border border-gray-300 rounded-md p-2 white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                            >
+                                <option value="lcss">Longuest Common SubSequence</option>
+                                <option value="dtw">Dynamic Time Warping</option>
+                                <option value="soft_dtw">Soft Dynamic Time Warping</option>
+                                <option value="tsl_dtw">TsLearn Dynamic Time Warping</option>
+                        </select>
                     </div>
 
                     {/* Boutons */}
@@ -376,20 +455,26 @@ const Clustering = () => {
 
                 {/* Liste des patients du cluster */}
                 <div className="space-y-2 overflow-y-auto">
-                    {clustersGenerer.cluster_to_patients[idClusterSelectionner]?.map((patientId) => (
-                        <div
-                            key={patientId}
-                            className="dark:bg-slate-700 dark:hover:bg-slate-600 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex items-center transition-all cursor-pointer"
-                        >
-                            <span className="text-slate-800 dark:text-slate-100 font-medium">
-                                {`Patient ${patientId}`}
-                            </span>
-                        </div>
-                    )) || (
-                        <p className="text-slate-800 dark:text-slate-100 text-center">
-                            Aucun patient dans ce cluster.
-                        </p>
-                    )}
+                    {Object.entries(clusters)
+                        .filter(([clusterId]) => clusterId === idClusterSelectionner.toString()) // Filtrer par idClusterSelectionner
+                        .map(([clusterId, patients]) => { // Déstructurer les entrées du cluster
+                            return patients.length > 0 ? (
+                                patients.map((patientId) => (
+                                    <div
+                                        key={patientId}
+                                        className="dark:bg-slate-700 dark:hover:bg-slate-600 p-3 rounded-lg shadow-sm border border-slate-200 dark:border-slate-600 flex items-center transition-all cursor-pointer"
+                                    >
+                                        <span className="text-slate-800 dark:text-slate-100 font-medium">
+                                            {`Patient ${patientId}`}
+                                        </span>
+                                    </div>
+                                ))
+                            ) : (
+                                <p className="text-slate-800 dark:text-slate-100 text-center">
+                                    Aucun patient dans ce cluster.
+                                </p>
+                            );
+                        })}
                 </div>
 
                 {/* Boutons */}
@@ -397,7 +482,10 @@ const Clustering = () => {
                     <button
                     type="button"
                     className="px-4 py-2 bg-gray-300 rounded-md"
-                    onClick={() => setAfficherCluster(!afficherCluster)}
+                    onClick={() => {
+                        setAfficherCluster(!afficherCluster)
+                        setIdClusterSelectionner("")
+                    }}
                     >
                         Annuler
                     </button>
@@ -406,6 +494,15 @@ const Clustering = () => {
             </div>
         )}
         </div>
+        {/* IMAGE HTML CLUSTERING */}
+        {imageHtmlClustering && (
+            <iframe
+                key={imageHtmlClustering}
+                src={imageHtmlClustering}
+                title="Clustering Visualization"
+                style={{ width: '100%', height: '500px', border: 'none' }}
+            />
+        )}
     </div>
   )
 }

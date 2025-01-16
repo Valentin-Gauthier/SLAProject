@@ -22,7 +22,7 @@ def add_patient(patient: tuple = Query(...)):
     return Clustering.add_patient(patient)
 
 @router.get("/cluster/cluster")
-def cluster(clusteringStrategy: str = "kmean", comparisonStrategy: str = "None", nbCluster: int = 2, listeIdPatients: List[int] = Query(...)):
+def cluster(clusteringStrategy: str = "kmeans", comparisonStrategy: str = "None", nbCluster: int = 2, listeIdPatients: List[int] = Query(...)):
     print(f"Strategy de Clustering: {clusteringStrategy}")
     print(f"Strategy de Comparaison: {comparisonStrategy}")
     print(f"Nombre de cluster: {nbCluster}")

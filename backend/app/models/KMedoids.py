@@ -87,47 +87,19 @@ class KMedoids(ClusteringStrategy):
         ))
 
         # Création du dossier si nécessaire
-        output_dir = "../visuals/"
+        output_dir = "../frontend/public/visuals/"
         os.makedirs(output_dir, exist_ok=True)
 
         # Sauvegarder le graphique en tant que fichier HTML
         html_path = os.path.join(output_dir, f"clusters_visualization_{comparisonStrategy}.html")
         fig.write_html(html_path)
+        imagePathForFront = f"/visuals/clusters_visualization_{comparisonStrategy}.html"
 
-        # -----------------------------------------------------------------------------------------------
-        # # Réduire les dimensions avec UMAP
-        # reducer = umap.UMAP(metric="precomputed", random_state=42)
-        # embedding = reducer.fit_transform(matrice_distance)
-
-        # # Générer une visualisation des clusters
-        # plt.figure(figsize=(10, 8))
-        # for cluster_id in range(nbCluster):
-        #     cluster_points = embedding[clusters == cluster_id]
-        #     plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label=f"Cluster {cluster_id}", alpha=0.6)
-
-        # # Marquer les médioïdes
-        # medoid_points = embedding[medoids]
-        # plt.scatter(medoid_points[:, 0], medoid_points[:, 1], c="red", s=200, label="Medoids", edgecolors="black", marker="X")
-
-        # plt.title("Cluster Visualization with K-Medoids")
-        # plt.legend()
-        # plt.xlabel("UMAP Dimension 1")
-        # plt.ylabel("UMAP Dimension 2")
-        # plt.grid(True)
-
-        # # Sauvegarder l'image
-        # visuals_path = "../visualsClustering/"
-        # os.makedirs(visuals_path, exist_ok=True)
-        # image_path = os.path.join(visuals_path, f"clustering_{comparisonStrategy}.png")
-        # plt.savefig(image_path)
-        # plt.close()
-        # -----------------------------------------------------------------------------------------------
-
-        # Structurer le retour
+        #Structurer le retour
         result = {
             "patient_to_cluster": patients_id_to_clusters_id,  # Mapping patient -> cluster
             "cluster_to_patients": {int(k): v for k, v in cluster_to_patients.items()},  # JSON-compatible
-            "visualization_path": html_path,  # Chemin de l'image générée
+            "visualization_path": imagePathForFront,  # Chemin de l'image générée
         }
 
         return result

@@ -10,39 +10,6 @@ import plotly.graph_objects as go
 from collections import defaultdict
 
 class WardHierarchicalClustering(ClusteringStrategy):
-
-    # def do_clustering(self, listeIdPatients: list, nbCluster: int, db_connection, comparisonStrategy: str):
-
-    #     if (comparisonStrategy=="tsl_dtw"):
-    #         strategy = Comp_TSLDTW()
-    #     elif (comparisonStrategy=="lcss"):
-    #         strategy = CompLCSS()
-    #     elif (comparisonStrategy=="soft_dtw"):
-    #         strategy = CompSoftDTW()
-    #     elif (comparisonStrategy=="dtw"):
-    #         strategy = CompDTW(multi=False)
-    #     else:
-    #         raise ValueError("Méthode de comparaison inconnue.")
-        
-    #     matrice_distance = strategy.compare(listeIdPatients, db_connection)
-    #     print(f"Matrice de distance: {matrice_distance}")
-    
-    #     vecteur_distance = squareform(matrice_distance)
-
-    #     Z = linkage(vecteur_distance, method='ward')
-
-    #     clusters = fcluster(Z, t=nbCluster, criterion='maxclust')
-
-    #     # Associer chaque patient à son cluster
-    #     patients_id_to_clusters_id = {patient_id: cluster_id for patient_id, cluster_id in zip(listeIdPatients, clusters)}
-
-    #     # Retourner les clusters et la matrice de linkage
-    #     print("clusters ward : ", clusters)
-    #     print("Z ward : ", Z)
-    #     print("Dictionnaire Patient -> Cluster : ", patients_id_to_clusters_id)
-    #     return clusters, Z
-    #     # Retourner le dictionnaire et la matrice de linkage pour analyse
-    #     return patients_id_to_clusters_id
     
     def do_clustering(self, listeIdPatients: list, nbCluster: int, db_connection, comparisonStrategy: str):
 
@@ -110,17 +77,18 @@ class WardHierarchicalClustering(ClusteringStrategy):
         )
 
         # Création du dossier si nécessaire
-        output_dir = "../visuals/"
+        output_dir = "../frontend/public/visuals/"
         os.makedirs(output_dir, exist_ok=True)
 
         # Sauvegarder le graphique en tant que fichier HTML
         html_path = os.path.join(output_dir, f"clusters_visualization_{comparisonStrategy}.html")
         fig.write_html(html_path)
+        imagePathForFront = f"/visuals/clusters_visualization_{comparisonStrategy}.html"
         # -----------------------------------------------------------------------------------------------
 
         # Retourner un dictionnaire structuré avec les informations
         return {
             "patient_id_to_cluster_id": patient_id_to_cluster_id,  # Mapping patient -> cluster
-            "cluster_id_to_patients": cluster_id_to_patients,  # Mapping cluster -> liste de patients
-            "linkage_matrix": Z_list,  # Matrice de linkage pour une éventuelle visualisation
+            "cluster_to_patients": cluster_id_to_patients,  # Mapping cluster -> liste de patients
+            "visualization_path": imagePathForFront
         }

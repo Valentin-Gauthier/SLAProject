@@ -75,11 +75,11 @@ class CompDTW(Comparison):
             seqs.clean_sequences(replace=True)
 
             #Récupération des clés des patients
-            sequences = seqs.get()
-            self.patients = list(sequences.keys())
+            self.sequences = seqs.get()
+            self.patients = list(self.sequences.keys())
 
             # Transformation en une liste de listes de np.array
-            sequences_list = [np.array(sequence) for sequence in sequences.values()]
+            sequences_list = [np.array(sequence) for sequence in self.sequences.values()]
             # Calcul des distances entre toutes les paires de patients
             distances = dtw.distance_matrix_fast(sequences_list)
             # Convertir le résultat en une liste de listes pour le rendre JSON-compatible
@@ -93,11 +93,11 @@ class CompDTW(Comparison):
             seqs.clean_sequences(replace=True)
 
             #Récupération des clés des patients
-            sequences = seqs.get()
-            self.patients = list(sequences.keys())
+            self.sequences = seqs.get()
+            self.patients = list(self.sequences.keys())
 
             # Transformation en une liste de listes de np.array
-            sequences_list = [np.array(sequence) for sequence in sequences.values()]
+            sequences_list = [np.array(sequence) for sequence in self.sequences.values()]
             # Calcul des distances entre toutes les paires de patients
             distances = dtw.distance_matrix_fast(sequences_list)
             # Convertir le résultat en une liste de listes pour le rendre JSON-compatible
@@ -106,7 +106,7 @@ class CompDTW(Comparison):
             return distances_json
         
     def illustrate(self):
-        if (len(self.sequences) != 2):
+        if (len(self.sequences) != 2):  
             self.heatmap("Heatmap des distances entre patients (DTW)")
 
 class CompLCSS(Comparison):
@@ -283,7 +283,7 @@ class CompSoftDTW(Comparison):
                 plt.plot([positions[0], positions[1]],
                         [seqs[0][positions[0]][0], seqs[1][positions[1]][0]], color='orange')
             plt.legend()
-            plt.title("Time series matching with DTW")
+            plt.title("Time series matching with soft-DTW")
             plt.tight_layout()
             plt.savefig(output_path)
             plt.close()

@@ -5,3 +5,8 @@ fastapi
 uvicorn
 seaborn
 psycopg2
+umap
+plotly
+scikit-learn-extra
+umap-learn
+h5py

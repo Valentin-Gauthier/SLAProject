@@ -80,15 +80,16 @@ const Comparaison = () => {
                 {/* Recuperer les données */ }
                 setMatriceDistance(response.data)
                 {/* Recuperer l'image */ }
-                setImageComparaison("")
                 let image = "/visuals/"
                 if (patientSelectionner.length === 2){
                     image += "compPlot.png"
                 } else {
                     image += "HeatMap.png"
                 }
-                console.log("Image url :" , image)
-                setImageComparaison(image)
+                // Ajouter un timestamp pour éviter la mise en cache
+                const cacheBuster = new Date().getTime(); // Horodatage unique
+                const imageUrl = `${image}?t=${cacheBuster}`;
+                setImageComparaison(imageUrl)
             })
             .catch( error => {
                 console.error("Erreur lors de la requete : ", error)
@@ -100,21 +101,28 @@ const Comparaison = () => {
     const [patientsDatas, setPatientsDatas] = useState([])
 
     const GetPatientData = (id_patient) => {
-        {/* préparation de la requete */ }
-        let url = `http://127.0.0.1:8000/patient?id=${id_patient}`
-
+        // Préparation de la requête
+        let url = `http://127.0.0.1:8000/patient?id=${id_patient}`;
+    
         axios
             .get(url)
-            .then( response => {
-                console.log("Reponse de la requete :", response.data)
-                {/* Recuperer les données et les ajouter a la liste */ }
-                setPatientsDatas(Datas => [...Datas, response.data])
-
+            .then(response => {
+                console.log("Données reçues :", response.data.patients);
+                // Récupérer les données et les ajouter si elles ne sont pas déjà présentes
+                setPatientsDatas(prevPatientsDatas => {
+                    const patientExist = prevPatientsDatas.some(patient => patient.id === id_patient);
+                    if (!patientExist) {
+                        return [...prevPatientsDatas, ...response.data.patients];
+                    } else {
+                        console.log(`Les données du patient ${id_patient} sont déjà chargées`);
+                        return prevPatientsDatas.filter(patient => patient.id !== id_patient);
+                    }
+                });
             })
-            .catch( error => {
-                console.error("Erreur lors de la requete : ", error)
-            })
-    }
+            .catch(error => {
+                console.error("Erreur lors de la requête : ", error);
+            });
+    };
 
     {/* recuperer les données de tous les patients selectionné */}
     const GetPatientsDatas = () => {
@@ -123,6 +131,34 @@ const Comparaison = () => {
             console.log("Recuperation des donnees pour le patient :", id_patient)
         }
     }
+
+    const formatDataForPlotly = () => {
+        const formattedData = [];
+        console.log("Données avant formatage :", patientsDatas);
+    
+        patientsDatas.forEach(patient => {
+            const { id, courbes } = patient;
+            Object.keys(courbes).forEach(key => {
+                const { nbJours: x, yData: y } = courbes[key];
+                formattedData.push({
+                    x: x, 
+                    y: y, 
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: `${key} (Patient ${id})`
+                });
+            });
+        });
+    
+        return formattedData;
+    };
+    
+
+    const [PlotlyPatientsDatas,setPlotlyPatientsDatas] = useState()
+    
+    useEffect( () => (
+    setPlotlyPatientsDatas(formatDataForPlotly())
+    ),[patientsDatas])
 
 
    {/* ----------------- Swapy -------------------*/}
@@ -207,6 +243,7 @@ const Comparaison = () => {
                                                                 if (alreadySelected) {
                                                                     // Si l'ID est déjà dans la liste, on l'enlève
                                                                     setPatientSelectionner(patientSelectionner.filter((id) => id !== patientId));
+                                                                    GetPatientData(patientId)
                                                                 } else {
                                                                     // Sinon, on l'ajoute et on récupère les données
                                                                     setPatientSelectionner([...patientSelectionner, patientId]);
@@ -244,9 +281,9 @@ const Comparaison = () => {
                             Graphique
                         </h3>
                         <div className="w-100% h-100% flex justify-center items-center">
-                            {patientsDatas ? (
+                            {PlotlyPatientsDatas ? (
                                 <PlotlyLineGraph
-                                    data={patientsDatas}
+                                    data={PlotlyPatientsDatas}
                                     GraphTitle={"Données des Patients Sélectionnés"}
                                     GraphWidth={800}
                                     GraphHeight={620}
@@ -278,13 +315,15 @@ const Comparaison = () => {
                             value={methodeComparaison || ''}
                             onChange={handleMethodeComparaison}
                         >
-                            {methodesComparaison.map( (methode) => (
-                            <option key={methode.value} value={methode.value}>
-                                {methode.label}
-                            </option>
-                            ))}
+                            {methodesComparaison
+                                .filter((methode) => !(patientSelectionner.length <= 2 && methode.value === "dtw"))
+                                .map((methode) => (
+                                    <option key={methode.value} value={methode.value}>
+                                        {methode.label}
+                                    </option>
+                                ))}
                         </select>   
-                        { patientSelectionner.length >= 2 && (
+                        { ((patientSelectionner.length >= 2 && !multiVariance) || (patientSelectionner.length >= 3 && multiVariance && methodeComparaison === "dtw")) && (
                             <>
                                 <button
                                     className="px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600"
@@ -300,7 +339,6 @@ const Comparaison = () => {
                             </>
                             
                             )}
-                           
                     </div>
                 </div>
 

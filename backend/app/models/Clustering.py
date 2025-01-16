@@ -14,11 +14,11 @@ class Clustering:
     _nb_cluster_classe = 0
 
     def __init__(self, strategy, nb_cluster):
-        if strategy == "kmean":
+        if strategy == "kmeans":
             self._strategy = KMean()
         elif strategy == "kmedoids":
             self._strategy = KMedoids()
-        elif strategy == "wardHierarchical":
+        elif strategy == "ward":
             self._strategy = WardHierarchicalClustering()
         else:
             raise ValueError("Stratégie inconnue pour le clustering.")
@@ -49,10 +49,10 @@ class Clustering:
     @staticmethod
     def get_patients_by_cluster(idCluster: int):
         # Cluster fait automatiquement quand on entre les données
-        
+
         sql = 'SELECT "1" FROM patient WHERE "185" = %s ORDER BY "1"'
         patients = Clustering._db_connection.execute(sql, (idCluster,))
-        return patients
+        return [item[0] for item in patients]
 
     @staticmethod
     def get_cluster_and_patients_by_patient(idPatient: int):

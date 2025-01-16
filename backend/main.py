@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 db_connection = DatabaseConnection.get_instance()
-db_connection.connect("postgres://postgres:admin@localhost:5432/projet_technique")
+db_connection.connect("postgres://postgres:password@localhost:5432/projet_technique")
 
 
 
